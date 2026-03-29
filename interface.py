@@ -23,7 +23,7 @@ if prompt := st.chat_input():
                 for h in st.session_state.messages[:-1]:
                     history += f"{h['role']}: {h['content']}\n\n"
                 stream = replicate.stream(
-                    "meta/llama-2-7b-chat",
+                    "meta/meta-llama-3.1-8b-instruct",
                     input={
                         "top_k": 0,
                         "top_p": 1,
