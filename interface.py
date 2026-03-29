@@ -6,19 +6,22 @@ replicate_api = st.secrets['REPLICATE_API_TOKEN']
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
 
-if prompt := st.chat_input():
-    if 'REPLICATE_API_TOKEN' not in st.secrets:
-        st.info("Please add your Replicate API key to continue.")
-        st.stop()
-         
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    if st.session_state.messages[-1]["role"] != "assistant":
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
+st.title("ReefXpert Monitoring Dashboard")
+
+with st.sidebar:
+    st.header("ReefXpert Chat")
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
+    if prompt := st.chat_input():
+        if 'REPLICATE_API_TOKEN' not in st.secrets:
+            st.info("Please add your Replicate API key to continue.")
+            st.stop()
+            
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.chat_message("user").write(prompt)
+        if st.session_state.messages[-1]["role"] != "assistant":
+            with st.chat_message("assistant"):
                 placeholder = st.empty() 
                 response = ""
                 history = ''
