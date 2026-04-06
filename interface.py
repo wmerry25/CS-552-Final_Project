@@ -68,13 +68,15 @@ with st.sidebar:
                                     "presence_penalty": 0,
                                     "log_performance_metrics": True
                                 })
+                            
+                            for s in stream:
+                                response += str(s)
+                                placeholder.markdown(response)
+                            st.session_state.messages.append({"role": "assistant", "content": response})
                             break
                         except replicate.exceptions.ReplicateError as e:
                             if "429" in str(e):
                                 time.sleep(3)
                             else:
                                 raise e
-                    for s in stream:
-                        response += str(s)
-                        placeholder.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+    
