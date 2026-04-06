@@ -1,2 +1,4 @@
 streamlit
 replicate
+torch
+pandas
