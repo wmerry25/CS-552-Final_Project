@@ -2,3 +2,4 @@ streamlit
 replicate
 torch
 pandas
+matplotlib
