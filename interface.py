@@ -44,33 +44,36 @@ with st.sidebar:
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.chat_message("user").write(prompt)
             if st.session_state.messages[-1]["role"] != "assistant":
+                m_retry = 0
                 with st.chat_message("assistant"):
                     placeholder = st.empty() 
                     response = ""
                     history = ''
                     for h in st.session_state.messages[-6:-1]:
                         history += f"{h['role']}: {h['content']}\n\n"
-                    try:
-                        stream = replicate.stream(
-                            "meta/meta-llama-3-8b-instruct",
-                            input={
-                                "temperature": 0.1,
-                                "top_k": 0,
-                                "top_p": 0.9,
-                                "prompt": prompt,
-                                "system_prompt": "You are an expert on coral reef systems in the home.The user is asking questions regarding their reef with these metaparameters:" + meta +". Keep your answers short, especially if the user is not asking a complex question. Use the following history to contextulize your answer: " + history,
-                                "length_penalty": 1,
-                                "max_new_tokens": 512,
-                                "stop_sequences": "<|end_of_text|>,<|eot_id|>",
-                                "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
-                                "presence_penalty": 0,
-                                "log_performance_metrics": True
-                            })
-                    except replicate.exceptions.ReplicateError as e:
-                        if "429" in str(e):
-                            time.sleep(3)
-                        else:
-                            raise e
+                    while m_retry <6:
+                        try:
+                            stream = replicate.stream(
+                                "meta/meta-llama-3-8b-instruct",
+                                input={
+                                    "temperature": 0.05,
+                                    "top_k": 0,
+                                    "top_p": 0.9,
+                                    "prompt": prompt,
+                                    "system_prompt": "You are an expert on coral reef systems in the home.The user is asking questions regarding their reef with these metaparameters:" + meta +". Keep your answers short, especially if the user is not asking a complex question. Use the following history to contextulize your answer: " + history,
+                                    "length_penalty": 1,
+                                    "max_new_tokens": 512,
+                                    "stop_sequences": "<|end_of_text|>,<|eot_id|>",
+                                    "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                                    "presence_penalty": 0,
+                                    "log_performance_metrics": True
+                                })
+                            break
+                        except replicate.exceptions.ReplicateError as e:
+                            if "429" in str(e):
+                                time.sleep(3)
+                            else:
+                                raise e
                     for s in stream:
                         response += str(s)
                         placeholder.markdown(response)
