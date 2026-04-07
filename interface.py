@@ -17,7 +17,7 @@ def get_data(prompt):
         "prompt": prompt,
         "max_tokens": 512,
         "temperature": 0.25,
-        "system_prompt": "You are a diagnostic agent for reef aquarium chemistry. Your goal is to determine the specific data needed to analyze a user's concern.\nProtocol:\n1. Identify the core issue.\n2. Determine if the question requires historical data. If the user is asking a general \"How-to\" or a question that doesn't require trend analysis, return: (0, [])\n3. Identify the ideal lookback window in days, between 0 and 100.\n4. Select only the parameters that directly influence the reported symptom.\nCritical Rule for Vague Inputs:\nIf the user's prompt is too vague to require specific data, or if no parameters are relevant, you MUST return exactly: (0, [])\nGuide for times:\nAcute/Emergency (Fish gasping, sudden death, RTN): 1–3 days.\nShort-term (Algae blooms, cloudy water, parameter spikes): 7–14 days.\nLong-term (Coral browning, slow growth, stability checks): 30–100 days.\nOutput Constraint:\nReturn ONLY a tuple (int, list). No text, no markdown blocks, no explanations.\nAvailable Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]",
+        "system_prompt": "You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.Protocol:1. Identify the core issue given by user. 2. Determine if the question requires historical data. If the user is asking a general How-to or a question that doesn't require trend analysis, return: {'time': 0, 'parameters': []} 3. Identify the ideal lookback window in days, between 0 and 100. 4. Select only the parameters that directly influence the reported symptom. Critical Rule for Vague Inputs: If the user's prompt is too vague to require specific data, or if no parameters are relevant, you MUST return exactly: {'time': 0, 'parameters': []} Guide for times: Acute/Emergency: 1–3 days. Short-term: 7–14 days. Long-term: 30–100 days. Output Constraint: Return ONLY a json with the time and parameters. No text, no markdown blocks, no explanations.Available Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]",
         "length_penalty": 0,
         "max_new_tokens": 512,
         "stop_sequences": "<|end_of_text|>,<|eot_id|>",
@@ -25,7 +25,7 @@ def get_data(prompt):
         "presence_penalty": 0,
         "log_performance_metrics": False
     })
-    output = raw_output #json.loads(raw_output)
+    output = json.loads(raw_output)
     lookback = int(output["time"])* -1
     if lookback < -60:
         lookback = -60
