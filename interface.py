@@ -15,7 +15,7 @@ def get_data(prompt):
         "top_k": 0,
         "top_p": 0.95,
         "prompt": prompt,
-        "max_tokens": 512,
+        "max_tokens": 25,
         "temperature": 0.25,
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
                             Protocol:
@@ -120,49 +120,51 @@ with st.sidebar:
                             relevant_data = get_data(prompt)
                     else:
                         relevant_data = "No Data Requested"
-                    while m_retry <6:
-                        try:
-                            stream = replicate.stream(
-                                "meta/meta-llama-3-8b-instruct",
-                                input={
-                                    "temperature": 0.05,
-                                    "top_k": 0,
-                                    "top_p": 0.9,
-                                    "prompt": prompt,
-                                    "system_prompt": f"""
-                                    You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
+                    with st.spinner("Thinking..."):
+                        while m_retry <6:
+                            try:
+                                stream = replicate.stream(
+                                    "meta/llama-4-maverick-instruct",
+                                    input={
+                                        "temperature": 0.6,
+                                        "use_cache": True,
+                                        "top_k": 0,
+                                        "top_p": 0.9,
+                                        "prompt": prompt,
+                                        "system_prompt": f"""
+                                        You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
 
-                                    ### TANK PROFILE (Meta-parameters)
-                                    {meta}
+                                        ### TANK PROFILE (Meta-parameters)
+                                        {meta}
 
-                                    ### RECENT DATA TRENDS
-                                    {relevant_data} 
+                                        ### RECENT DATA TRENDS
+                                        {relevant_data} 
 
-                                    ### CONVERSATION HISTORY
-                                    {history}
+                                        ### CONVERSATION HISTORY
+                                        {history}
 
-                                    ### INSTRUCTIONS:
-                                    1. Use the RECENT DATA to identify any immediate threats.
-                                    2. If the data shows an anomaly, briefly mention it even if the user didn't ask.
-                                    3. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
-                                    4. Ensure your answers are rooted in safety and provide a disclaimer to users.
-                                    """,
-                                    "length_penalty": 1,
-                                    "max_new_tokens": 512,
-                                    "stop_sequences": "<|end_of_text|>,<|eot_id|>",
-                                    "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
-                                    "presence_penalty": 0,
-                                    "log_performance_metrics": True
-                                })
-                            
-                            for s in stream:
-                                response += str(s)
-                                placeholder.markdown(response)
-                            st.session_state.messages.append({"role": "assistant", "content": response})
-                            break
-                        except replicate.exceptions.ReplicateError as e:
-                            if "429" in str(e):
-                                time.sleep(3)
-                            else:
-                                raise e
-    
+                                        ### INSTRUCTIONS:
+                                        1. Use the RECENT DATA to identify any immediate threats.
+                                        2. If the data shows an anomaly, briefly mention it even if the user didn't ask.
+                                        3. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
+                                        4. Ensure your answers are rooted in safety.
+                                        """,
+                                        "length_penalty": 0.5,
+                                        "max_new_tokens": 512,
+                                        "stop_sequences": "<|end_of_text|>,<|eot_id|>",
+                                        "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                                        "presence_penalty": 0,
+                                        "log_performance_metrics": True
+                                    })
+                                
+                                for s in stream:
+                                    response += str(s)
+                                    placeholder.markdown(response)
+                                st.session_state.messages.append({"role": "assistant", "content": response})
+                                break
+                            except replicate.exceptions.ReplicateError as e:
+                                if "429" in str(e):
+                                    time.sleep(3)
+                                else:
+                                    raise e
+        
