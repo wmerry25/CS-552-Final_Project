@@ -40,12 +40,16 @@ def get_data(prompt):
         "log_performance_metrics": False
     })
     raw_output = "".join(raw_output)
-    output = json.loads(raw_output)
-    lookback = int(output["time"])* -1
-    if lookback < -60:
-        lookback = -60
-    time_window = slice(lookback,None)
-    selected_params = output["parameters"]
+    try:
+        output = json.loads(raw_output)
+        lookback = int(output["time"])* -1
+        if lookback < -60:
+            lookback = -60
+        time_window = slice(lookback,None)
+        selected_params = output["parameters"]
+    except json.JSONDecodeError:
+        print(f"Param Agent returned {raw_output}")
+        return None
     index_list = []
     new_data = {}
     if lookback == 0 or len(selected_params) == 0:
