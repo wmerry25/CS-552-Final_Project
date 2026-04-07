@@ -25,7 +25,7 @@ def get_data(prompt):
         "presence_penalty": 0,
         "log_performance_metrics": False
     })
-    output = json.loads(raw_output)
+    output = raw_output #json.loads(raw_output)
     lookback = int(output["time"])* -1
     if lookback < -60:
         lookback = -60
