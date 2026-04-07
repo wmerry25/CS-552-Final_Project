@@ -49,11 +49,11 @@ def get_data(prompt):
         selected_params = output["parameters"]
     except json.JSONDecodeError:
         print(f"Param Agent returned {raw_output}")
-        return None
+        return "No Data Requested"
     index_list = []
     new_data = {}
     if lookback == 0 or len(selected_params) == 0:
-        return None
+        return "No Data Requested"
     for param in selected_params:
         try:
             idx = measures.index(param)
@@ -100,6 +100,7 @@ with st.sidebar:
     with v_box:
         for msg in st.session_state.messages:
             st.chat_message(msg["role"]).write(msg["content"])
+    inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
     if prompt := st.chat_input():
         if 'REPLICATE_API_TOKEN' not in st.secrets:
             st.stop()
@@ -114,7 +115,11 @@ with st.sidebar:
                     history = ''
                     for h in st.session_state.messages[-6:-1]:
                         history += f"{h['role']}: {h['content']}\n\n"
-                    relevant_data =get_data(prompt)
+                    if inc_data:
+                        with st.spinner("Thinking..."):
+                            relevant_data = get_data(prompt)
+                    else:
+                        relevant_data = "No Data Requested"
                     while m_retry <6:
                         try:
                             stream = replicate.stream(
