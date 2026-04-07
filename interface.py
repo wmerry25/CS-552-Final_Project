@@ -105,7 +105,24 @@ with st.sidebar:
                                     "top_k": 0,
                                     "top_p": 0.9,
                                     "prompt": prompt,
-                                    "system_prompt": "You are an expert on coral reef systems in the home.The user is asking questions regarding their reef with these metaparameters:" + meta +". Use the following data to contextualize your answers: " +relevant_data +"Keep your answers short, especially if the user is not asking a complex question. Use the following history to contextulize your answer: " + history,
+                                    "system_prompt": f"""
+                                    You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
+
+                                    ### TANK PROFILE (Meta-parameters)
+                                    {meta}
+
+                                    ### RECENT DATA TRENDS
+                                    {relevant_data} 
+
+                                    ### CONVERSATION HISTORY
+                                    {history}
+
+                                    ### INSTRUCTIONS:
+                                    1. Use the RECENT DATA to identify any immediate threats.
+                                    2. If the data shows an anomaly, briefly mention it even if the user didn't ask.
+                                    3. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
+                                    4. Ensure your answers are rooted in safety and provide a disclaimer to users.
+                                    """,
                                     "length_penalty": 1,
                                     "max_new_tokens": 512,
                                     "stop_sequences": "<|end_of_text|>,<|eot_id|>",
