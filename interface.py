@@ -19,10 +19,9 @@ def get_data(prompt):
         "temperature": 0.25,
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
                             Protocol:
-                            1. Identify the core issue given by user.
-                            2. Determine if the question requires historical data. If the user is asking a general "How-to" or a question that doesn't require trend analysis, return: {"time": 0, "parameters": []}
-                            3. Identify the ideal lookback window in days, between 0 and 100.
-                            4. Select only the parameters that directly influence the reported symptom.
+                            1. Determine if the question requires historical data. If the user is asking a general "How-to" or a question that doesn't require trend analysis, return: {"time": 0, "parameters": []}
+                            2. Identify the ideal lookback window in days, between 0 and 100.
+                            3. Select only the parameters that directly influence the reported symptom.
                             Critical Rule for Vague Inputs:
                             If the user's prompt is too vague to require specific data, or if no parameters are relevant, you MUST return exactly: {"time": 0, "parameters": []}
                             Guide for times:
@@ -80,91 +79,144 @@ if "params" not in st.session_state:
         data = generate_random_walk(vae, 100, 32, 0.1)
     st.session_state["params"] = data
 
-meta = "Size:40g,Age:3y,Livestock:(Clowfish,Blenny,Royal Gramma,Goby)"
+if "meta" not in st.session_state:
+    st.session_state['meta'] = {"volume": 80, 
+                                "age": 3, 
+                                "gph": 100, 
+                                "refugium": 'No', 
+                                "skimmer": 'Yes', 
+                                "reactor": 'No', 
+                                "lighting_type": 'T5',
+                                "lighting_period": 9, 
+                                "water_change_schedule": 20}
+from fault_injection import *
 
-#Dashboard
-st.title("ReefXpert Monitoring Dashboard")
+def dashboard():
+    st.title("ReefXpert Monitoring Dashboard")
 
-st.subheader("Water Parameters")
-x_start = datetime.now().date() - timedelta(days = len(st.session_state["params"][:, 0]))
-x_axis = pd.date_range(x_start, periods=len(st.session_state["params"][:, 0]))
+    st.subheader("Water Parameters")
+    x_start = datetime.now().date() - timedelta(days = len(st.session_state["params"][:, 0]))
+    x_axis = pd.date_range(x_start, periods=len(st.session_state["params"][:, 0]))
 
-for i in range(len(ranges)):
-    st.subheader(measures[i] )
-    df = pd.DataFrame(st.session_state["params"][:, i].numpy(), index= x_axis)
-    st.line_chart(df)
-# Chat
-with st.sidebar:
-    st.header("ReefXpert Chat")
-    v_box = st.container(height = 600)
-    with v_box:
-        for msg in st.session_state.messages:
-            st.chat_message(msg["role"]).write(msg["content"])
-    inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
-    if prompt := st.chat_input():
-        if 'REPLICATE_API_TOKEN' not in st.secrets:
-            st.stop()
-        with v_box:  
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.chat_message("user").write(prompt)
-            if st.session_state.messages[-1]["role"] != "assistant":
-                m_retry = 0
-                with st.chat_message("assistant"):
-                    placeholder = st.empty() 
-                    response = ""
-                    history = ''
-                    for h in st.session_state.messages[-6:-1]:
-                        history += f"{h['role']}: {h['content']}\n\n"
-                    if inc_data:
+    for i in range(len(ranges)):
+        st.subheader(measures[i] )
+        df = pd.DataFrame(st.session_state["params"][:, i].numpy(), index= x_axis)
+        st.line_chart(df)
+    # Chat
+    with st.sidebar:
+        st.header("ReefXpert Chat")
+        v_box = st.container(height = 300)
+        with v_box:
+            for msg in st.session_state.messages:
+                st.chat_message(msg["role"]).write(msg["content"])
+        inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
+        if prompt := st.chat_input():
+            if 'REPLICATE_API_TOKEN' not in st.secrets:
+                st.stop()
+            with v_box:  
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.chat_message("user").write(prompt)
+                if st.session_state.messages[-1]["role"] != "assistant":
+                    m_retry = 0
+                    with st.chat_message("assistant"):
+                        placeholder = st.empty() 
+                        response = ""
+                        history = ''
+                        for h in st.session_state.messages[-6:-1]:
+                            history += f"{h['role']}: {h['content']}\n\n"
+                        if inc_data:
+                            with st.spinner("Thinking..."):
+                                relevant_data = get_data(prompt)
+                        else:
+                            relevant_data = "No Data Requested"
                         with st.spinner("Thinking..."):
-                            relevant_data = get_data(prompt)
-                    else:
-                        relevant_data = "No Data Requested"
-                    with st.spinner("Thinking..."):
-                        while m_retry <6:
-                            try:
-                                stream = replicate.stream(
-                                    "meta/llama-4-maverick-instruct",
-                                    input={
-                                        "temperature": 0.6,
-                                        "use_cache": True,
-                                        "top_k": 0,
-                                        "top_p": 0.9,
-                                        "prompt": prompt,
-                                        "system_prompt": f"""
-                                        You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
+                            while m_retry <6:
+                                try:
+                                    stream = replicate.stream(
+                                        "meta/llama-4-maverick-instruct",
+                                        input={
+                                            "temperature": 0.6,
+                                            "use_cache": True,
+                                            "top_k": 0,
+                                            "top_p": 0.9,
+                                            "prompt": prompt,
+                                            "system_prompt": f"""
+                                            You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
+                                            ### TANK PROFILE (Meta-parameters)
+                                            {st.session_state['meta']}
+                                            ### RECENT DATA TRENDS
+                                            {relevant_data} 
+                                            ### CONVERSATION HISTORY
+                                            {history}
+                                            ### INSTRUCTIONS:
+                                            1. 
+                                            2. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
+                                            3. Ensure your answers are rooted in safety.
+                                            4. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
+                                            """,
+                                            "length_penalty": 0.25,
+                                            "max_new_tokens": 512,
+                                            "stop_sequences": "<|end_of_text|>,<|eot_id|>",
+                                            "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+                                            "presence_penalty": 0,
+                                            "log_performance_metrics": True
+                                        })
+                                    
+                                    for s in stream:
+                                        response += str(s)
+                                        placeholder.markdown(response)
+                                    st.session_state.messages.append({"role": "assistant", "content": response})
+                                    break
+                                except replicate.exceptions.ReplicateError as e:
+                                    if "429" in str(e):
+                                        time.sleep(3)
+                                    else:
+                                        raise e
 
-                                        ### TANK PROFILE (Meta-parameters)
-                                        {meta}
 
-                                        ### RECENT DATA TRENDS
-                                        {relevant_data} 
+def fault_injection():
+    st.title("Fault Injection")
+    st.write("On this page, select a fault to be included in the dataset or select random to select an unknown fault and test the chatbot.")
+    rows = [st.columns(5), st.columns(5)]
+    i = 0
+    for row in rows:
+        for col in row:
+            if col.button(fault_names[i], key=fault_names[i]):
+                fault_functions[i]()
+                st.success(f"{fault_names[i]} selected. Fault has been injected into data.")
+            i+=1
 
-                                        ### CONVERSATION HISTORY
-                                        {history}
 
-                                        ### INSTRUCTIONS:
-                                        1. Use the RECENT DATA to identify any immediate threats.
-                                        2. If the data shows an anomaly, briefly mention it even if the user didn't ask.
-                                        3. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
-                                        4. Ensure your answers are rooted in safety.
-                                        """,
-                                        "length_penalty": 0.5,
-                                        "max_new_tokens": 512,
-                                        "stop_sequences": "<|end_of_text|>,<|eot_id|>",
-                                        "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
-                                        "presence_penalty": 0,
-                                        "log_performance_metrics": True
-                                    })
-                                
-                                for s in stream:
-                                    response += str(s)
-                                    placeholder.markdown(response)
-                                st.session_state.messages.append({"role": "assistant", "content": response})
-                                break
-                            except replicate.exceptions.ReplicateError as e:
-                                if "429" in str(e):
-                                    time.sleep(3)
-                                else:
-                                    raise e
-        
+def settings():
+    bool_selections = ['Yes', 'No']
+    lighting_selections = ['Hallogen', 'T5', 'Hybrid']
+    st.title("Settings")
+    settings_form = st.form('settings')
+    volume = settings_form.number_input('What is the volume of the total system? **(gallons)**', 0, value=st.session_state['meta']["volume"])
+    age = settings_form.number_input('What is the age of your aquarium? **(years)**', 0,value=st.session_state['meta']["age"])
+    gph = settings_form.number_input('What is the estimated flow/water turnover rate in your aquarium? **(GPH)**', 0,value=st.session_state['meta']["gph"])
+    refugium = settings_form.selectbox('Are you using a refugium?', bool_selections, index = bool_selections.index(st.session_state['meta']["refugium"]))
+    skimmer = settings_form.selectbox('Are you using a protein skimmer?', bool_selections, index = bool_selections.index(st.session_state['meta']["skimmer"]))
+    reactor = settings_form.selectbox('Are you using a carbon reactor?', bool_selections, index = bool_selections.index(st.session_state['meta']["reactor"]))
+    lighting_type= settings_form.selectbox('What type of lighting do you use?', lighting_selections, index = lighting_selections.index(st.session_state['meta']["lighting_type"]))
+    lighting_period = settings_form.number_input('How many hours are your lights on per day', 0, 24, value=st.session_state['meta']["lighting_period"])
+    water_change_schedule = settings_form.number_input('Per week, what percentage water change do you do? If you perform waterchanges on a non-weekly basis, please normalize the number to weekly.', 0, 100,value=st.session_state['meta']["water_change_schedule"])
+    submit = settings_form.form_submit_button()
+    if submit:
+        st.session_state['meta']["volume"] = volume
+        st.session_state['meta']["age"] = age
+        st.session_state['meta']["gph"] = gph
+        st.session_state['meta']["refugium"] = refugium
+        st.session_state['meta']["skimmer"] = skimmer
+        st.session_state['meta']["reactor"] = reactor
+        st.session_state['meta']["lighting_type"] = lighting_type
+        st.session_state['meta']["lighting_period"] = lighting_period
+        st.session_state['meta']["water_change_schedule"] = water_change_schedule
+        st.success("Settings Updated")
+
+dashboard_page = st.Page(dashboard, title="Dashboard", icon="📈")
+fault_page = st.Page(fault_injection, title="Fault Injection", icon="⚠️")
+settings_page = st.Page(settings,title="Settings", icon = "⚙️")
+
+pg = st.navigation([dashboard_page, fault_page,settings_page])
+pg.run()
