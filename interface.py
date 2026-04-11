@@ -21,10 +21,12 @@ def get_data(prompt):
                             Protocol:
                             1. Identify the ideal lookback window in days, between 0 and 100.
                             2. Select only the parameters that directly influence the reported symptom.
+                            3. If unsure on the correct parameters to select, be cautious and select more rather than less.
                             Guide for times:
                             Acute/Emergency: 1–3 days.
                             Short-term: 7–14 days.
                             Long-term: 30–100 days.
+                            Default to 25 days if unsure.
                             Output Constraint:
                             Return ONLY a json with the 'time' and 'parameters'. No text, no markdown blocks, no explanations.
                             Available Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]""",
@@ -142,17 +144,16 @@ def dashboard():
                                             "prompt": prompt,
                                             "system_prompt": f"""
                                             You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
-                                            ### TANK PROFILE (Meta-parameters)
-                                            {st.session_state['meta']}
                                             ### RECENT DATA TRENDS
                                             {relevant_data} 
                                             ### CONVERSATION HISTORY
                                             {history}
+                                            ### TANK PROFILE (Meta-parameters)
+                                            {st.session_state['meta']}
                                             ### INSTRUCTIONS:
-                                            1. Do not mention the meta-parameters of the tank.
-                                            2. Keep your answers brief.
+                                            1. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
+                                            2. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
                                             3. Ensure your answers are rooted in safety.
-                                            4. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             """,
                                             "length_penalty": 0.7,
                                             "max_new_tokens": 512,
