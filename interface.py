@@ -152,8 +152,9 @@ def dashboard():
                                             {st.session_state['meta']}
                                             ### INSTRUCTIONS:
                                             1. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
-                                            2. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
-                                            3. Ensure your answers are rooted in safety.
+                                            2. Explicily state the data you are looking at. Provide answers based on this data.
+                                            3. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
+                                            4. Ensure your answers are rooted in safety.
                                             """,
                                             "length_penalty": 0.7,
                                             "max_new_tokens": 512,
