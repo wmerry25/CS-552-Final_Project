@@ -66,7 +66,7 @@ def get_data(prompt):
         new_data[measures[index]] = new_row.round(decimals=2)
     return new_data
 
-replicate_api = st.secrets['REPLICATE_API_TOKEN']
+# replicate_api = st.secrets['REPLICATE_API_TOKEN']
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
 
@@ -78,6 +78,7 @@ if "params" not in st.session_state:
     with torch.no_grad():
         data = generate_random_walk(vae, 100, 32, 0.1)
     st.session_state["params"] = data
+    st.session_state["stored_params"] = st.session_state["params"].clone()
 
 if "meta" not in st.session_state:
     st.session_state['meta'] = {"volume": 80, 
@@ -111,9 +112,10 @@ def dashboard():
                 st.chat_message(msg["role"]).write(msg["content"])
         inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
         if prompt := st.chat_input():
-            if 'REPLICATE_API_TOKEN' not in st.secrets:
-                st.stop()
+            # if 'REPLICATE_API_TOKEN' not in st.secrets:
+            #     st.stop()
             with v_box:  
+                sp = "Thinking..."
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 st.chat_message("user").write(prompt)
                 if st.session_state.messages[-1]["role"] != "assistant":
@@ -125,11 +127,12 @@ def dashboard():
                         for h in st.session_state.messages[-6:-1]:
                             history += f"{h['role']}: {h['content']}\n\n"
                         if inc_data:
-                            with st.spinner("Thinking..."):
+                            with st.spinner(sp):
                                 relevant_data = get_data(prompt)
+                                sp = "Initial analysis complete. Thinking..."
                         else:
                             relevant_data = "No Data Requested"
-                        with st.spinner("Thinking..."):
+                        with st.spinner(sp):
                             while m_retry <6:
                                 try:
                                     stream = replicate.stream(
@@ -154,7 +157,7 @@ def dashboard():
                                             3. Ensure your answers are rooted in safety.
                                             4. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             """,
-                                            "length_penalty": 0.25,
+                                            "length_penalty": 0.1,
                                             "max_new_tokens": 512,
                                             "stop_sequences": "<|end_of_text|>,<|eot_id|>",
                                             "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
