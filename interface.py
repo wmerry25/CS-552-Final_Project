@@ -19,11 +19,8 @@ def get_data(prompt):
         "temperature": 0.25,
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
                             Protocol:
-                            1. Determine if the question requires historical data. If the user is asking a general "How-to" or a question that doesn't require trend analysis, return: {"time": 0, "parameters": []}
-                            2. Identify the ideal lookback window in days, between 0 and 100.
-                            3. Select only the parameters that directly influence the reported symptom.
-                            Critical Rule for Vague Inputs:
-                            If the user's prompt is too vague to require specific data, or if no parameters are relevant, you MUST return exactly: {"time": 0, "parameters": []}
+                            1. Identify the ideal lookback window in days, between 0 and 100.
+                            2. Select only the parameters that directly influence the reported symptom.
                             Guide for times:
                             Acute/Emergency: 1–3 days.
                             Short-term: 7–14 days.
@@ -152,12 +149,12 @@ def dashboard():
                                             ### CONVERSATION HISTORY
                                             {history}
                                             ### INSTRUCTIONS:
-                                            1. 
-                                            2. Always prioritize the stability of: Calcium, Alkalinity, and Magnesium.
+                                            1. Do not mention the meta-parameters of the tank.
+                                            2. Keep your answers brief.
                                             3. Ensure your answers are rooted in safety.
                                             4. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             """,
-                                            "length_penalty": 0.1,
+                                            "length_penalty": 0.7,
                                             "max_new_tokens": 512,
                                             "stop_sequences": "<|end_of_text|>,<|eot_id|>",
                                             "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
