@@ -63,7 +63,7 @@ def get_data(prompt):
         new_data[measures[index]] = new_row.round(decimals=2)
     return new_data
 
-# replicate_api = st.secrets['REPLICATE_API_TOKEN']
+replicate_api = st.secrets['REPLICATE_API_TOKEN']
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
 
@@ -109,8 +109,8 @@ def dashboard():
                 st.chat_message(msg["role"]).write(msg["content"])
         inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
         if prompt := st.chat_input():
-            # if 'REPLICATE_API_TOKEN' not in st.secrets:
-            #     st.stop()
+            if 'REPLICATE_API_TOKEN' not in st.secrets:
+                st.stop()
             with v_box:  
                 sp = "Thinking..."
                 st.session_state.messages.append({"role": "user", "content": prompt})
