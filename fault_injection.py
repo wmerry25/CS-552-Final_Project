@@ -18,7 +18,7 @@ def generate_steps(parameter, max_steps_from_end, min_steps_from_end, increase, 
     param_index = measures.index(parameter)
     length = time_period-index
     for i in range(length):
-        step = float(random.randint(10*min_step, 10*max_step))/10
+        step = float(random.randint(int(10*min_step), int(10*max_step)))/10
         if increase:
             st.session_state["params"][index+i,param_index] = st.session_state["params"][index+i-1,param_index] + step
         else:
