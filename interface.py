@@ -18,16 +18,16 @@ def get_data(prompt):
         "max_tokens": 25,
         "temperature": 0.25,
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
-                            Protocol:
+                            # PROTOCOL:
                             1. Identify the ideal lookback window in days, between 0 and 100.
                             2. Select only the parameters that directly influence the reported symptom.
                             3. If unsure on the correct parameters to select, be cautious and select more rather than less.
-                            Guide for times:
+                            # GUIDE FOR TIMES:
                             Acute/Emergency: 1–3 days.
                             Short-term: 7–14 days.
                             Long-term: 30–100 days.
                             Default to 25 days if unsure.
-                            Output Constraint:
+                            # OUTPUT CONSTRAINT:
                             Return ONLY a json with the 'time' and 'parameters'. No text, no markdown blocks, no explanations.
                             Available Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]""",
         "length_penalty": 0,
@@ -89,6 +89,7 @@ if "meta" not in st.session_state:
                                 "lighting_type": 'T5',
                                 "lighting_period": 9, 
                                 "water_change_schedule": 20}
+    
 from fault_injection import *
 
 def dashboard():
@@ -98,10 +99,22 @@ def dashboard():
     x_start = datetime.now().date() - timedelta(days = len(st.session_state["params"][:, 0]))
     x_axis = pd.date_range(x_start, periods=len(st.session_state["params"][:, 0]))
 
+    general_param_trends = "Over the past 100 days the following parameters have changed: \n"
+
     for i in range(len(ranges)):
-        st.subheader(measures[i] )
+        param = measures[i]
+        st.subheader(param)
         df = pd.DataFrame(st.session_state["params"][:, i].numpy(), index= x_axis)
         st.line_chart(df)
+        start = round(st.session_state["params"][99, i].item(),2)
+        end = round(st.session_state["params"][0, i].item(),2)
+        diff = end - start
+        pct_change = round(100* abs(diff)/end,2)
+        change = "stayed flat"
+        if diff > 0: change = "increased" 
+        elif diff < 0: change = "decreased"
+        general_param_trends += f"{param}: From {start} to {end}. It {change} by {pct_change} % \n"
+    print(general_param_trends)
     # Chat
     with st.sidebar:
         st.header("ReefXpert Chat")
@@ -109,7 +122,7 @@ def dashboard():
         with v_box:
             for msg in st.session_state.messages:
                 st.chat_message(msg["role"]).write(msg["content"])
-        inc_data = st.toggle("Deep Analysis: Include Parameter History", value=False)
+        inc_data = st.toggle("Deep Analysis: Include Detailed Parameter History", value=False)
         if prompt := st.chat_input():
             if 'REPLICATE_API_TOKEN' not in st.secrets:
                 st.stop()
@@ -144,13 +157,15 @@ def dashboard():
                                             "prompt": prompt,
                                             "system_prompt": f"""
                                             You are an expert on in-home reef aquarium biology. You are to provide scientific and data-driven advice to users based on the following.
-                                            ### RECENT DATA TRENDS
+                                            # OVERALL DATA TRENDS
+                                            {general_param_trends}
+                                            # IDENTIFIED RELEVANT DATA
                                             {relevant_data} 
                                             ### CONVERSATION HISTORY
                                             {history}
-                                            ### TANK PROFILE (Meta-parameters)
+                                            # TANK PROFILE (Meta-parameters)
                                             {st.session_state['meta']}
-                                            ### INSTRUCTIONS:
+                                            # INSTRUCTIONS:
                                             1. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             2. Explicily state the data you are looking at. Provide answers based on this data.
                                             3. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
