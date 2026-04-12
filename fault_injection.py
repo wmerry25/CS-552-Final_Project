@@ -8,7 +8,6 @@ from interface import reset_chat_history
 def reset():
     st.session_state["params"] = st.session_state["stored_params"].clone()
     reset_chat_history()
-    st.rerun()
 def random_error():
     reset()
     random_fault_index = random.randint(1,9)
@@ -31,10 +30,10 @@ def ato_failure():
     generate_steps("Salinity", 30,0, True, 0.4,0)
 def heater_on():
     reset()
-    generate_steps("Temperature", 7,0, True, 0.7,0)
+    generate_steps("Temperature", 7,0, True, 2,0)
 def heater_off():
     reset()
-    generate_steps("Temperature", 7,0, False, 0.7,0)
+    generate_steps("Temperature", 7,0, False, 1.5,0)
 def dosing_pump():
     reset()
     generate_steps("Alkalinity", 30, 0, True, 0.8,0)

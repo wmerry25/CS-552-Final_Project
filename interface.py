@@ -1,6 +1,5 @@
 import streamlit as st
 import replicate
-import os
 from reefdatasetgen import VAE, generate_random_walk, ranges, measures
 import torch
 import pandas as pd
@@ -126,7 +125,7 @@ def dashboard():
     with st.sidebar:
         col = st.columns(2)
         col[0].header("ReefXpert Chat")
-        if col[1].button("Reset Chat History", key = "Reset_Hist"):
+        if col[1].button("Reset Chat History", key = "reset_conversation_history_dashboard"):
             reset_chat_history()
             st.rerun()
         v_box = st.container(height = 300)
