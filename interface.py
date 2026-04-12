@@ -21,7 +21,7 @@ def get_data(prompt):
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
                             # PROTOCOL:
                             1. Identify the ideal lookback window in days, between 0 and 100.
-                            2. Select only the parameters that directly influence the reported symptom.
+                            2. Select only the parameters that directly influence the reported symptom. Available Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]
                             3. If unsure on the correct parameters to select, be cautious and select more rather than less.
                             # GUIDE FOR TIMES:
                             Acute/Emergency: 1–3 days.
@@ -30,7 +30,7 @@ def get_data(prompt):
                             Default to 25 days if unsure.
                             # OUTPUT CONSTRAINT:
                             Return ONLY a json with the 'time' and 'parameters'. No text, no markdown blocks, no explanations.
-                            Available Parameters: [Calcium, Alkalinity, Magnesium, Phosphate, Nitrate, Nitrite, Ammonia, Salinity, Temperature, pH, ORP]""",
+                            """,
         "length_penalty": 0,
         "max_new_tokens": 25,
         "stop_sequences": "<|end_of_text|>,<|eot_id|>",
@@ -179,6 +179,8 @@ def dashboard():
                                             {history}
                                             # TANK PROFILE (Meta-parameters)
                                             {st.session_state['meta']}
+                                            #POTENTIAL ISSUES
+                                            ATO Failure, Heater Failure On, Heater Failure Off, Dosing Pump Failure, Filter Issue, Flow Issue, Livestock Death, Refugium Light Failure, Protein Skimmer Failure
                                             # INSTRUCTIONS:
                                             1. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             2. Explicily state the data you are looking at. Provide answers based on this data.
