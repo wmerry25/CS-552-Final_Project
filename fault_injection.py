@@ -3,10 +3,12 @@ import streamlit as st
 import torch
 time_period = len(st.session_state["params"][:,0])
 from reefdatasetgen import measures
+from interface import reset_chat_history
 
 def reset():
     st.session_state["params"] = st.session_state["stored_params"].clone()
-
+    reset_chat_history()
+    st.rerun()
 def random_error():
     reset()
     random_fault_index = random.randint(1,9)

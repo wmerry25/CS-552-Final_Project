@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 import time
 import json
 
+def reset_chat_history():
+    st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
 def get_data(prompt):
     raw_output = replicate.run(
     "meta/meta-llama-3-8b-instruct",
@@ -65,7 +67,7 @@ def get_data(prompt):
         new_data[measures[index]] = new_row.round(decimals=2)
     return new_data
 
-replicate_api = st.secrets['REPLICATE_API_TOKEN']
+# replicate_api = st.secrets['REPLICATE_API_TOKEN']
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
 
@@ -92,6 +94,16 @@ if "meta" not in st.session_state:
     
 from fault_injection import *
 
+def param_hist(i, param, length):
+    start = round(st.session_state["params"][0, i].item(),2)
+    end = round(st.session_state["params"][length - 1, i].item(),2)
+    diff = end - start
+    pct_change = round(100* abs(diff)/end,2)
+    change = "stayed flat"
+    if diff > 0: change = "increased" 
+    elif diff < 0: change = "decreased"
+    return f"{param} {length} Day History: From {start} to {end}. It {change} by {pct_change} % \n"
+
 def dashboard():
     st.title("ReefXpert Monitoring Dashboard")
 
@@ -99,33 +111,32 @@ def dashboard():
     x_start = datetime.now().date() - timedelta(days = len(st.session_state["params"][:, 0]))
     x_axis = pd.date_range(x_start, periods=len(st.session_state["params"][:, 0]))
 
-    general_param_trends = "Over the past 50 days the following parameters have changed: \n"
+    general_param_trends = ""
 
     for i in range(len(ranges)):
         param = measures[i]
         st.subheader(param)
         df = pd.DataFrame(st.session_state["params"][:, i].numpy(), index= x_axis)
         st.line_chart(df)
-        start = round(st.session_state["params"][0, i].item(),2)
-        end = round(st.session_state["params"][49, i].item(),2)
-        diff = end - start
-        pct_change = round(100* abs(diff)/end,2)
-        change = "stayed flat"
-        if diff > 0: change = "increased" 
-        elif diff < 0: change = "decreased"
-        general_param_trends += f"{param}: From {start} to {end}. It {change} by {pct_change} % \n"
+        general_param_trends += param_hist(i, param, 50)
+        general_param_trends += param_hist(i, param, 10)
+
     print(general_param_trends)
     # Chat
     with st.sidebar:
-        st.header("ReefXpert Chat")
+        col = st.columns(2)
+        col[0].header("ReefXpert Chat")
+        if col[1].button("Reset Chat History", key = "Reset_Hist"):
+            reset_chat_history()
+            st.rerun()
         v_box = st.container(height = 300)
         with v_box:
             for msg in st.session_state.messages:
                 st.chat_message(msg["role"]).write(msg["content"])
-        inc_data = st.toggle("Deep Analysis: Include Detailed Parameter History", value=False)
+        inc_data = st.toggle("Deep Analysis: Include Detailed Parameter History", value=False, help = "When on, specific tailored data is used to generate a response.")
         if prompt := st.chat_input():
-            if 'REPLICATE_API_TOKEN' not in st.secrets:
-                st.stop()
+            # if 'REPLICATE_API_TOKEN' not in st.secrets:
+            #     st.stop()
             with v_box:  
                 sp = "Thinking..."
                 st.session_state.messages.append({"role": "user", "content": prompt})
