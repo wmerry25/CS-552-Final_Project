@@ -46,13 +46,13 @@ def filter():
     generate_steps("Nitrite", 7, 0, True, 0.2,0)
 def flow():
     reset()
-    generate_steps("pH", 14, 7, False, 0.2,0)
+    generate_steps("pH", 14, 7, False, 0.1,0)
     generate_steps("Ammonia", 21, 14, True, 0.8,0)
     generate_steps("Nitrate", 14, 7, True, 0.5,0)
     generate_steps("Nitrite", 7, 0, True, 0.2,0)
 def death():
     reset()
-    generate_steps("pH", 14, 7, False, 0.3,0)
+    generate_steps("pH", 14, 7, False, 0.1,0)
     generate_steps("Ammonia", 21, 14, True, 0.7,0)
     generate_steps("Nitrate", 14, 7, True, 0.5,0)
     generate_steps("Nitrite", 7, 0, True, 0.3,0)
