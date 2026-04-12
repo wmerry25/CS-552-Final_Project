@@ -7,13 +7,14 @@ from interface import reset_chat_history
 
 def reset():
     st.session_state["params"] = st.session_state["stored_params"].clone()
+    st.session_state["fault"] = ""
     reset_chat_history()
 def random_error():
     reset()
-    random_fault_index = random.randint(1,9)
+    random_fault_index = random.randint(1,len(fault_functions)-1)
     fault_functions[random_fault_index]()
-    error = measures[random.randint(1,9)]
-    st.write(error)
+    error = fault_names[random_fault_index]
+    return error
 def generate_steps(parameter, max_steps_from_end, min_steps_from_end, increase, max_step, min_step):
     index = random.randint(time_period-max_steps_from_end-1,time_period-min_steps_from_end-1)
     param_index = measures.index(parameter)
@@ -57,18 +58,18 @@ def death():
     generate_steps("Nitrite", 7, 0, True, 0.3,0)
 def refugium_light():
     reset()
-    generate_steps("Nitrate", 30, True, 0.5,0)
-    generate_steps("Phosphate", 30, True, 0.1,0)
+    generate_steps("Nitrate", 30, 0, True, 0.5,0)
+    generate_steps("Phosphate", 30, 0, True, 0.1,0)
 def protein_skimmer():
     reset()
     generate_steps("ORP", 14, 0, False, 0.2,0)
     generate_steps("Phosphate", 21, 14, True, 0.1,0)
     generate_steps("Nitrate", 14, 0, True, 0.5,0)
 
-fault_functions = [random_error, ato_failure, heater_on, heater_off, 
+fault_functions = [ato_failure, heater_on, heater_off, 
                   dosing_pump, filter, flow, death,
                   refugium_light, protein_skimmer]
 
-fault_names =["Random", "ATO Failure", "Heater Failure On", "Heater Failure Off", 
+fault_names =["ATO Failure", "Heater Failure On", "Heater Failure Off", 
                 "Dosing Pump Failure", "Filter Issue", "Flow Issue", "Livestock Death",
                 "Refugium Light Failure", "Protein Skimmer Failure"]

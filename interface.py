@@ -80,6 +80,11 @@ if "params" not in st.session_state:
     st.session_state["params"] = data
     st.session_state["stored_params"] = st.session_state["params"].clone()
 
+if "fault" not in st.session_state:
+    st.session_state["fault"] = "No Fault Selected"
+if "Button Label" not in st.session_state:
+    st.session_state["Button Label"] = "Show Fault"
+
 if "meta" not in st.session_state:
     st.session_state['meta'] = {"volume": 80, 
                                 "age": 3, 
@@ -120,12 +125,11 @@ def dashboard():
         general_param_trends += param_hist(i, param, 50)
         general_param_trends += param_hist(i, param, 10)
 
-    print(general_param_trends)
     # Chat
     with st.sidebar:
         col = st.columns(2)
         col[0].header("ReefXpert Chat")
-        if col[1].button("Reset Chat History", key = "reset_conversation_history_dashboard"):
+        if col[1].button("Reset Chat History", key= "reset_conversation_history"):
             reset_chat_history()
             st.rerun()
         v_box = st.container(height = 300)
@@ -204,13 +208,30 @@ def dashboard():
 def fault_injection():
     st.title("Fault Injection")
     st.write("On this page, select a fault to be included in the dataset or select random to select an unknown fault and test the chatbot.")
-    rows = [st.columns(5), st.columns(5)]
+    if st.session_state["Button Label"] == "Hide Fault":
+        st.write(f'The selected fault is: {st.session_state["fault"]}')
+    header_buttons = st.columns(3)
+    if header_buttons[0].button("Reset Data", key = "Reset", use_container_width=True):
+        reset()
+        st.rerun()
+    if header_buttons[1].button("Random Fault", key= "Random Fault", use_container_width=True):
+        st.session_state["fault"] = random_error()
+        st.rerun()
+    if header_buttons[2].button(st.session_state["Button Label"], key = "Toggle Show", use_container_width=True):
+        if st.session_state["Button Label"] == "Show Fault":
+            st.session_state["Button Label"] = "Hide Fault"
+            st.rerun()
+        else:
+            st.session_state["Button Label"] = "Show Fault"
+            st.rerun()
+    rows = [st.columns(3, vertical_alignment="center"), st.columns(3, vertical_alignment="center"), st.columns(3, vertical_alignment="center")]
     i = 0
     for row in rows:
         for col in row:
-            if col.button(fault_names[i], key=fault_names[i]):
+            if col.button(fault_names[i], key=fault_names[i], use_container_width=True):
                 fault_functions[i]()
-                st.success(f"{fault_names[i]} selected. Fault has been injected into data.")
+                st.session_state["fault"] = fault_names[i]
+                st.rerun()
             i+=1
 
 
@@ -241,9 +262,10 @@ def settings():
         st.session_state['meta']["water_change_schedule"] = water_change_schedule
         st.success("Settings Updated")
 
-dashboard_page = st.Page(dashboard, title="Dashboard", icon="📈")
-fault_page = st.Page(fault_injection, title="Fault Injection", icon="⚠️")
-settings_page = st.Page(settings,title="Settings", icon = "⚙️")
+if __name__ == "__main__":
+    dashboard_page = st.Page(dashboard, title="Dashboard", icon="📈")
+    fault_page = st.Page(fault_injection, title="Fault Injection", icon="⚠️")
+    settings_page = st.Page(settings,title="Settings", icon = "⚙️")
 
-pg = st.navigation([dashboard_page, fault_page,settings_page])
-pg.run()
+    pg = st.navigation([dashboard_page, fault_page,settings_page])
+    pg.run()
