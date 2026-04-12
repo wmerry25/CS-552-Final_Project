@@ -99,15 +99,15 @@ def dashboard():
     x_start = datetime.now().date() - timedelta(days = len(st.session_state["params"][:, 0]))
     x_axis = pd.date_range(x_start, periods=len(st.session_state["params"][:, 0]))
 
-    general_param_trends = "Over the past 100 days the following parameters have changed: \n"
+    general_param_trends = "Over the past 50 days the following parameters have changed: \n"
 
     for i in range(len(ranges)):
         param = measures[i]
         st.subheader(param)
         df = pd.DataFrame(st.session_state["params"][:, i].numpy(), index= x_axis)
         st.line_chart(df)
-        start = round(st.session_state["params"][99, i].item(),2)
-        end = round(st.session_state["params"][0, i].item(),2)
+        start = round(st.session_state["params"][0, i].item(),2)
+        end = round(st.session_state["params"][49, i].item(),2)
         diff = end - start
         pct_change = round(100* abs(diff)/end,2)
         change = "stayed flat"
