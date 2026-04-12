@@ -95,8 +95,8 @@ if "meta" not in st.session_state:
 from fault_injection import *
 
 def param_hist(i, param, length):
-    start = round(st.session_state["params"][0, i].item(),2)
-    end = round(st.session_state["params"][length - 1, i].item(),2)
+    start = round(st.session_state["params"][100-length, i].item(),2)
+    end = round(st.session_state["params"][99, i].item(),2)
     diff = end - start
     pct_change = round(100* abs(diff)/end,2)
     change = "stayed flat"
