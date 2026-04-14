@@ -70,7 +70,7 @@ def loss_function(recon_x, x, mu, logvar, beta):
 def train(model, train_loader, optimizer, epoch, device, beta):
     model.train()
     train_loss = 0
-    for batch_idx, (data,) in enumerate(train_loader):
+    for _ , (data,) in enumerate(train_loader):
         optimizer.zero_grad()
         data = data.to(device)
         recon_batch, mu, logvar = model(data)
@@ -97,7 +97,7 @@ def generate_random_walk(model, T, latent_dim, step_size, device="cpu"):
     return x_gen
 
 def main():
-    n_samples = 5000
+    n_samples = 50
     n_col = len(ranges)
     x_train = np.zeros((n_samples, n_col))
     for i, (low, high) in enumerate(ranges):
@@ -113,7 +113,7 @@ def main():
 
     loss_plot = []
     for epoch in range(1, 500):
-        loss_plot.append(train(vae, train_loader, optimizer, epoch, device, 0.05))
+        loss_plot.append(train(vae, train_loader, optimizer, epoch, device, 0.25))
     print("Training Complete")
 
     plt.figure(figsize=(10,5))
