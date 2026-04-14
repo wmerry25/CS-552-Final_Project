@@ -104,7 +104,7 @@ def main():
       x_train[:,i] = (np.random.uniform(low,high,n_samples) - low) / (high-low)
     x_train = torch.tensor(x_train, dtype=torch.float32)
     train_dataset = TensorDataset(x_train)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     vae = VAE(input_dim=n_col, hidden_dim=16, latent_dim=32)
@@ -126,12 +126,11 @@ def main():
         x = generate_random_walk(vae, 100, 32, 0.1)
 
 
-    fig, axes = plt.subplots(1, n_col, figsize=(120, 10))
+    # fig, axes = plt.subplots(1, n_col, figsize=(120, 10))
     for i in range(n_col):
-        axes[i].plot(x[:, i])
-        axes[i].set_title(measures[i])
-    plt.show()
-    print(x.shape)
+        plt.plot(x[:, i])
+        plt.title(measures[i])
+        plt.show()
 
     torch.save(vae.state_dict(),'reef_vae.pth')
 
