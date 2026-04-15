@@ -124,7 +124,6 @@ def dashboard():
         st.line_chart(df)
         general_param_trends += param_hist(i, param, 50)
         general_param_trends += param_hist(i, param, 10)
-
     # Chat
     with st.sidebar:
         col = st.columns(2)

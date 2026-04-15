@@ -41,30 +41,30 @@ def dosing_pump():
 def filter():
     reset()
     generate_steps("ORP", 14, 7, False, 0.2,0)
-    generate_steps("Ammonia", 21, 14, True, 0.8,0)
-    generate_steps("Nitrate", 14, 7, True, 0.5,0)
-    generate_steps("Nitrite", 7, 0, True, 0.2,0)
+    generate_steps("Ammonia", 21, 14, True, 0.1,0)
+    generate_steps("Nitrate", 14, 7, True, 0.08,0)
+    generate_steps("Nitrite", 7, 0, True, 0.05,0)
 def flow():
     reset()
     generate_steps("pH", 14, 7, False, 0.1,0)
-    generate_steps("Ammonia", 21, 14, True, 0.8,0)
-    generate_steps("Nitrate", 14, 7, True, 0.5,0)
-    generate_steps("Nitrite", 7, 0, True, 0.2,0)
+    generate_steps("Ammonia", 21, 14, True, 0.08,0)
+    generate_steps("Nitrite", 14, 7, True, 0.05,0)
+    generate_steps("Nitrate", 7, 0, True, 0.03,0)
 def death():
     reset()
     generate_steps("pH", 14, 7, False, 0.1,0)
-    generate_steps("Ammonia", 21, 14, True, 0.7,0)
-    generate_steps("Nitrate", 14, 7, True, 0.5,0)
-    generate_steps("Nitrite", 7, 0, True, 0.3,0)
+    generate_steps("Ammonia", 21, 14, True, 0.2,0)
+    generate_steps("Nitrite", 14, 7, True, 0.1,0)
+    generate_steps("Nitrate", 7, 0, True, 0.08,0)
 def refugium_light():
     reset()
-    generate_steps("Nitrate", 30, 0, True, 0.5,0)
+    generate_steps("Nitrate", 30, 0, True, 0.1,0)
     generate_steps("Phosphate", 30, 0, True, 0.1,0)
 def protein_skimmer():
     reset()
     generate_steps("ORP", 14, 0, False, 0.2,0)
-    generate_steps("Phosphate", 21, 14, True, 0.1,0)
-    generate_steps("Nitrate", 14, 0, True, 0.5,0)
+    generate_steps("Phosphate", 21, 14, True, 0.01,0)
+    generate_steps("Nitrate", 14, 0, True, 0.1,0)
 
 fault_functions = [ato_failure, heater_on, heater_off, 
                   dosing_pump, filter, flow, death,

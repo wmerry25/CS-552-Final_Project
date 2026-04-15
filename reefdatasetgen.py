@@ -19,12 +19,12 @@ ranges = [
     (8,12),    # Alkalinity dKH
     (1200,1400),  # Magnesium ppm
     (0.01,0.05),    # Phosphate ppm
-    (0,15),     # Nitrate ppm
-    (0,5),    #Nitrite ppm
-    (0,5),    #Ammonia ppm
+    (0,10),     # Nitrate ppm
+    (0,2),    #Nitrite ppm
+    (0,0.55),    #Ammonia ppm
     (32, 35),    # Salinity  ppt
     (76,80),    # Temperature degrees F
-    (8.0, 8.3),     # pH
+    (8.1, 8.3),     # pH
     (250, 400)    # ORP mV
 ]
 
@@ -120,17 +120,17 @@ def main():
     plt.plot(loss_plot, label = 'Training Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.show()
+    plt.savefig("Loss Plot.png")
+    plt.close()
 
     with torch.no_grad():
         x = generate_random_walk(vae, 100, 32, 0.1)
 
-
-    # fig, axes = plt.subplots(1, n_col, figsize=(120, 10))
     for i in range(n_col):
         plt.plot(x[:, i])
         plt.title(measures[i])
-        plt.show()
+        plt.savefig(f"Example_Plot_{measures[i]}.png")
+        plt.close()
 
     torch.save(vae.state_dict(),'reef_vae.pth')
 
