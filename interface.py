@@ -81,6 +81,9 @@ if "params" not in st.session_state:
     st.session_state["params"] = data
     st.session_state["stored_params"] = st.session_state["params"].clone()
 
+if "deep_analysis" not in st.session_state:
+    st.session_state["deep_analysis"] = False
+
 if "fault" not in st.session_state:
     st.session_state["fault"] = "No Fault Selected"
 if "Button Label" not in st.session_state:
@@ -136,7 +139,7 @@ def dashboard():
         with v_box:
             for msg in st.session_state.messages:
                 st.chat_message(msg["role"]).write(msg["content"])
-        inc_data = st.toggle("Deep Analysis: Include Detailed Parameter History", value=False, help = "When on, specific tailored data is used to generate a response.")
+        st.session_state["deep_analysis"] = st.toggle("Deep Analysis: Include Detailed Parameter History", help = "When on, specific tailored data is used to generate a response.")
         if prompt := st.chat_input():
             if 'REPLICATE_API_TOKEN' not in st.secrets:
                 st.stop()
@@ -152,7 +155,7 @@ def dashboard():
                         history = ''
                         for h in st.session_state.messages[-6:-1]:
                             history += f"{h['role']}: {h['content']}\n\n"
-                        if inc_data:
+                        if st.session_state["deep_analysis"]:
                             with st.spinner(sp):
                                 relevant_data = get_data(prompt)
                                 sp = "Initial analysis complete. Thinking..."
@@ -201,7 +204,6 @@ def dashboard():
                                         response += str(s)
                                         placeholder.markdown(response)
                                     st.session_state.messages.append({"role": "assistant", "content": response})
-                                    eval(response, prompt)
                                     break
                                 except replicate.exceptions.ReplicateError as e:
                                     if "429" in str(e):
