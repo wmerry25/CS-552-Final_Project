@@ -17,7 +17,7 @@ def get_data(prompt):
         "top_k": 0,
         "top_p": 0.95,
         "prompt": prompt,
-        "max_tokens": 25,
+        "max_tokens": 150,
         "temperature": 0.25,
         "system_prompt": """You are a diagnostic agent for reef aquarium chemistry. Your job is to determine the data needed to analyze a user's query.
                             # PROTOCOL:
@@ -33,7 +33,7 @@ def get_data(prompt):
                             Return ONLY a json with the 'time' and 'parameters'. No text, no markdown blocks, no explanations.
                             """,
         "length_penalty": 0,
-        "max_new_tokens": 25,
+        "max_new_tokens": 150,
         "stop_sequences": "<|end_of_text|>,<|eot_id|>",
         "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
         "presence_penalty": 0,
