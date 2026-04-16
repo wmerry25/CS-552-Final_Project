@@ -3,3 +3,4 @@ replicate
 torch
 pandas
 matplotlib
+torchmetrics

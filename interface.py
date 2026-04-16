@@ -181,10 +181,12 @@ def dashboard():
                                             #POTENTIAL ISSUES
                                             ATO Failure, Heater Failure On, Heater Failure Off, Dosing Pump Failure, Filter Issue, Flow Issue, Livestock Death, Refugium Light Failure, Protein Skimmer Failure
                                             # INSTRUCTIONS:
-                                            1. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
-                                            2. Explicily state the data you are looking at. Provide answers based on this data.
-                                            3. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
-                                            4. Ensure your answers are rooted in safety.
+                                            1. Answer in 100 words or less.
+                                            2. Include one of the potential issues above unless the parameters are within normal ranges. 
+                                            3. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
+                                            4. Explicily state the data you are looking at. Provide answers based on this data.
+                                            5. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
+                                            6. Ensure your answers are rooted in safety.
                                             """,
                                             "length_penalty": 0.7,
                                             "max_new_tokens": 512,
@@ -208,7 +210,7 @@ def dashboard():
 
 def fault_injection():
     st.title("Fault Injection")
-    st.write("On this page, select a fault to be included in the dataset or select random to select an unknown fault and test the chatbot.")
+    st.write("Select a fault to be included in the dataset or select random to select an unknown fault and test the chatbot.")
     if st.session_state["Button Label"] == "Hide Fault":
         st.write(f'The selected fault is: {st.session_state["fault"]}')
     header_buttons = st.columns(3)
