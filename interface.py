@@ -201,8 +201,7 @@ def dashboard():
                                         response += str(s)
                                         placeholder.markdown(response)
                                     st.session_state.messages.append({"role": "assistant", "content": response})
-                                    metrics = stream.prediction.metrics
-                                    eval(response, prompt, metrics)
+                                    eval(response, prompt)
                                     break
                                 except replicate.exceptions.ReplicateError as e:
                                     if "429" in str(e):
