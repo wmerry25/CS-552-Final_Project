@@ -16,7 +16,6 @@ def scrape_output(txt):
             scraped_output += str.lower(word) + " "
     return scraped_output
 
-def eval(output, ground_truth, metrics):
+def eval(output, ground_truth):
     rouge(scrape_output(output),ground_truth)
     print(rouge)
-    print(metrics)
