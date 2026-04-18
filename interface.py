@@ -192,7 +192,7 @@ def dashboard():
                                             ATO Failure, Heater Failure On, Heater Failure Off, Dosing Pump Failure, Filter Issue, Flow Issue, Livestock Death, Refugium Light Failure, Protein Skimmer Failure
                                             # INSTRUCTIONS:
                                             1. Answer in 100 words or less.
-                                            2. Include one of the potential issues above unless the parameters are within normal ranges. 
+                                            2. If the user asks a question about their aquarium, include one of the potential issues above unless the parameters are within normal ranges. 
                                             3. If recent data is provided, use the RECENT DATA to identify any immediate threats. If the data shows an anomaly, briefly mention it even if the user didn't ask.
                                             4. Explicily state the data you are looking at. Provide answers based on this data.
                                             5. Do not mention the tank profile unless it is causing an issue. Treat this as context to base your answers on.
