@@ -6,7 +6,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 import json
-from fault_injection import *
 
 #Reset Chat History
 def reset_chat_history():
@@ -70,7 +69,7 @@ def get_data(prompt):
         new_data[measures[index]] = new_row.round(decimals=2)
     return new_data
 
-replicate_api = st.secrets['REPLICATE_API_TOKEN']
+# replicate_api = st.secrets['REPLICATE_API_TOKEN']
 
 #Session State Init
 if "messages" not in st.session_state:
@@ -116,6 +115,8 @@ def param_hist(i, param, length):
     elif diff < 0: change = "decreased"
     return f"{param} {length} Day History: From {start} to {end}. It {change} by {pct_change} % \n"
 
+#Importing after session_state params is initialized to avoid global var definition error
+from fault_injection import *
 
 #Main Dashboard Page
 def dashboard():
@@ -147,8 +148,8 @@ def dashboard():
                 st.chat_message(msg["role"]).write(msg["content"])
         st.session_state["deep_analysis"] = st.toggle("Deep Analysis: Include Detailed Parameter History", help = "When on, specific tailored data is used to generate a response.")
         if prompt := st.chat_input():
-            if 'REPLICATE_API_TOKEN' not in st.secrets:
-                st.stop()
+            # if 'REPLICATE_API_TOKEN' not in st.secrets:
+            #     st.stop()
             with v_box:  
                 sp = "Thinking..."
                 st.session_state.messages.append({"role": "user", "content": prompt})
@@ -262,7 +263,7 @@ def settings():
     lighting_type= settings_form.selectbox('What type of lighting do you use?', lighting_selections, index = lighting_selections.index(st.session_state['meta']["lighting_type"]))
     lighting_period = settings_form.number_input('How many hours are your lights on per day', 0, 24, value=st.session_state['meta']["lighting_period"])
     water_change_schedule = settings_form.number_input('Per week, what percentage water change do you do? If you perform waterchanges on a non-weekly basis, please normalize the number to weekly.', 0, 100,value=st.session_state['meta']["water_change_schedule"])
-    submit = settings_form.form_submit_button()
+    submit = settings_form.form_submit_button(label = "Save")
     if submit:
         st.session_state['meta']["volume"] = volume
         st.session_state['meta']["age"] = age
