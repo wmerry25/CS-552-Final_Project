@@ -1,6 +1,5 @@
 import random
 import streamlit as st
-import torch
 time_period = len(st.session_state["params"][:,0])
 from reefdatasetgen import measures
 from interface import reset_chat_history

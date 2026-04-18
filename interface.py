@@ -6,10 +6,13 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 import json
-from model_eval import eval
+from fault_injection import *
 
+#Reset Chat History
 def reset_chat_history():
     st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
+
+#Meta Llama 3 8b Call for deep analysis mode
 def get_data(prompt):
     raw_output = replicate.run(
     "meta/meta-llama-3-8b-instruct",
@@ -68,6 +71,8 @@ def get_data(prompt):
     return new_data
 
 replicate_api = st.secrets['REPLICATE_API_TOKEN']
+
+#Session State Init
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "Welcome to the ReefXpert Chat. How may I help?"}]
 
@@ -99,9 +104,8 @@ if "meta" not in st.session_state:
                                 "lighting_type": 'T5',
                                 "lighting_period": 9, 
                                 "water_change_schedule": 20}
-    
-from fault_injection import *
 
+#Get Summarized Parameter History for Main Model
 def param_hist(i, param, length):
     start = round(st.session_state["params"][100-length, i].item(),2)
     end = round(st.session_state["params"][99, i].item(),2)
@@ -112,6 +116,8 @@ def param_hist(i, param, length):
     elif diff < 0: change = "decreased"
     return f"{param} {length} Day History: From {start} to {end}. It {change} by {pct_change} % \n"
 
+
+#Main Dashboard Page
 def dashboard():
     st.title("ReefXpert Monitoring Dashboard")
 
@@ -211,7 +217,7 @@ def dashboard():
                                     else:
                                         raise e
 
-
+#Fault Injection Page
 def fault_injection():
     st.title("Fault Injection")
     st.write("Select a fault to be included in the dataset or select random to select an unknown fault and test the chatbot.")
@@ -241,7 +247,7 @@ def fault_injection():
                 st.rerun()
             i+=1
 
-
+#Settings Page
 def settings():
     bool_selections = ['Yes', 'No']
     lighting_selections = ['Hallogen', 'T5', 'Hybrid']
@@ -269,6 +275,7 @@ def settings():
         st.session_state['meta']["water_change_schedule"] = water_change_schedule
         st.success("Settings Updated")
 
+#Main Function with Navigation
 if __name__ == "__main__":
     dashboard_page = st.Page(dashboard, title="Dashboard", icon="📈")
     fault_page = st.Page(fault_injection, title="Fault Injection", icon="⚠️")
